@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useUser, useAuth } from "@/firebase";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const getTitleFromPath = (path: string) => {
   if (path.startsWith("/cases/")) {
@@ -67,6 +68,7 @@ export function Header() {
             />
           </div>
         </form>
+        <ModeToggle />
         <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Toggle notifications</span>
