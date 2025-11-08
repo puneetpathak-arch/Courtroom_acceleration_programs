@@ -1,3 +1,58 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "1",
+      "description": "Avatar for a judge.",
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjI1MzcyMjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "professional portrait"
+    },
+    {
+      "id": "2",
+      "description": "Avatar for a lawyer.",
+      "imageUrl": "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y29ycG9yYXRlJTIwaGVhZHNob3R8ZW58MHx8fHwxNzYyNjEzNTg5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "corporate headshot"
+    },
+    {
+      "id": "3",
+      "description": "Avatar for a litigant.",
+      "imageUrl": "https://images.unsplash.com/photo-1720364941284-5dc0c3010bda?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBjYXN1YWx8ZW58MHx8fHwxNzYyNTg2MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person casual"
+    },
+    {
+      "id": "4",
+      "description": "Avatar for a clerk.",
+      "imageUrl": "https://images.unsplash.com/photo-1600275669439-14e40452d20b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3b21hbiUyMG9mZmljZXxlbnwwfHx8fDE3NjI1NzU0MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman office"
+    },
+    {
+      "id": "5",
+      "description": "Avatar for an admin.",
+      "imageUrl": "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc2MjU5NjgyNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man smiling"
+    },
+    {
+      "id": "6",
+      "description": "Thumbnail for a civil procedure course.",
+      "imageUrl": "https://images.unsplash.com/photo-1619771699034-fec6b1aabde3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsYXclMjBib29rc3xlbnwwfHx8fDE3NjI2MTQ1MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "law books"
+    },
+    {
+      "id": "7",
+      "description": "Thumbnail for an evidence law course.",
+      "imageUrl": "https://images.unsplash.com/photo-1490127252417-7c393f993ee4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYWduaWZ5aW5nJTIwZ2xhc3N8ZW58MHx8fHwxNzYyNTk2MjcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "magnifying glass"
+    },
+    {
+      "id": "8",
+      "description": "Thumbnail for a mediation course.",
+      "imageUrl": "https://images.unsplash.com/photo-1758518730384-be3d205838e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYW5kc2hha2UlMjBtZWV0aW5nfGVufDB8fHx8MTc2MjYwMTU3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "handshake meeting"
+    },
+    {
+      "id": "9",
+      "description": "Thumbnail for a digital ethics course.",
+      "imageUrl": "https://images.unsplash.com/photo-1569748130764-3fed0c102c59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjb21wdXRlciUyMGNvZGV8ZW58MHx8fHwxNzYyNTQ1ODA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "computer code"
+    }
+  ]
 }
