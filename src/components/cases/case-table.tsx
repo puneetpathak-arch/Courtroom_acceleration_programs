@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -12,7 +13,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { PlusCircle, File, MoreHorizontal } from "lucide-react";
+import { PlusCircle, File, MoreHorizontal, Gavel } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -126,14 +127,22 @@ const columns: ColumnDef<Case>[] = [
   },
 ];
 
-export function CaseTable() {
+interface CaseTableProps {
+  judgeId?: string;
+}
+
+export function CaseTable({ judgeId }: CaseTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [activeTab, setActiveTab] = React.useState("all");
+  const [activeTab, setActiveTab] = React.useState("active");
+
+  const filteredCases = React.useMemo(() => {
+    return judgeId ? allCases.filter(c => c.assignedJudgeId === judgeId) : allCases;
+  }, [judgeId]);
 
   const data = React.useMemo(() => {
-    if (activeTab === "all") return allCases;
-    return allCases.filter(c => c.status !== 'closed' && c.status !== 'judgment');
-  }, [activeTab]);
+    if (activeTab === "all") return filteredCases;
+    return filteredCases.filter(c => c.status !== 'closed' && c.status !== 'judgment');
+  }, [activeTab, filteredCases]);
 
   const table = useReactTable({
     data,
@@ -146,41 +155,50 @@ export function CaseTable() {
     state: {
       sorting,
     },
+    initialState: {
+        pagination: {
+            pageSize: 5,
+        }
+    }
   });
 
   return (
-    <Tabs defaultValue="all" onValueChange={setActiveTab}>
+    <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
       <div className="flex items-center">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
         </TabsList>
-        <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" variant="outline" className="h-8 gap-1">
-            <File className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Export
-            </span>
-          </Button>
-          <Button size="sm" className="h-8 gap-1">
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              File New Case
-            </span>
-          </Button>
-        </div>
+        {!judgeId && (
+            <div className="ml-auto flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-8 gap-1">
+                <File className="h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Export
+                </span>
+            </Button>
+            <Button size="sm" className="h-8 gap-1">
+                <PlusCircle className="h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                File New Case
+                </span>
+            </Button>
+            </div>
+        )}
       </div>
       <TabsContent value={activeTab}>
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">
-              {activeTab === 'all' ? 'All Cases' : 'Active Cases'}
-            </CardTitle>
-            <CardDescription>
-              Manage and track all legal cases in the system.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          {!judgeId && (
+            <CardHeader>
+                <CardTitle className="font-headline">
+                {activeTab === 'all' ? 'All Cases' : 'Active Cases'}
+                </CardTitle>
+                <CardDescription>
+                Manage and track all legal cases in the system.
+                </CardDescription>
+            </CardHeader>
+          )}
+          <CardContent className={cn(judgeId && "pt-6")}>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
