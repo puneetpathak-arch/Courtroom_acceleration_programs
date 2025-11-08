@@ -8,6 +8,7 @@ import {
   MessageCircle,
   BookOpen,
   Scale,
+  Video,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/cases", icon: Gavel, label: "Cases" },
   { href: "/chatbot", icon: MessageCircle, label: "Chatbot" },
   { href: "/academy", icon: BookOpen, label: "Academy" },
+  { href: "/virtual-hearing", icon: Video, label: "Virtual Hearing" },
 ];
 
 export function Sidebar() {
