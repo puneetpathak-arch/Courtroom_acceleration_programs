@@ -19,9 +19,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { setDoc, doc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import type { UserRole } from '@/lib/types';
+
+const roles: UserRole[] = ['judge', 'lawyer', 'litigant', 'clerk', 'mediator'];
+
 
 export default function SignupPage() {
   const auth = useAuth();
@@ -30,6 +41,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState<UserRole>('litigant');
   const [error, setError] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -56,7 +68,7 @@ export default function SignupPage() {
         uid: user.uid,
         email: user.email,
         name: name,
-        roles: ['litigant'], // Default role
+        roles: [role],
         avatarUrl: `https://picsum.photos/seed/${user.uid}/400/400`
       });
 
@@ -127,6 +139,21 @@ export default function SignupPage() {
                 placeholder="********"
                 disabled={isSigningUp}
             />
+          </div>
+           <div className="grid gap-2">
+            <Label htmlFor="role">Role</Label>
+            <Select onValueChange={(value: UserRole) => setRole(value)} defaultValue={role} disabled={isSigningUp}>
+              <SelectTrigger id="role">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
