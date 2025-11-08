@@ -14,6 +14,7 @@ import { User, Gavel, Scale, FileText, Calendar, Clock, Tag, Video, Users, Build
 import { CaseActions } from "@/components/cases/case-actions";
 import { statusColors } from "@/components/cases/case-table";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export default function CaseDetailPage({ params }: { params: { caseId: string } }) {
   const caseData = findCase(params.caseId);
