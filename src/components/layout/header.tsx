@@ -2,7 +2,7 @@
 
 import { Bell, Search, User as UserIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useUser } from "@/context/user-context";
+import { useUser, useAuth } from "@/firebase";
 
 const getTitleFromPath = (path: string) => {
   if (path.startsWith("/cases/")) {
@@ -39,8 +39,15 @@ const getTitleFromPath = (path: string) => {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const title = getTitleFromPath(pathname);
-  const { user, logout } = useUser();
+  const { user } = useUser();
+  const auth = useAuth();
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/login');
+  };
 
   return (
     <header className="flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 sticky top-0 z-30">
@@ -70,12 +77,9 @@ export function Header() {
               <Avatar className="h-8 w-8">
                 {user ? (
                     <>
-                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person casual" />
+                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} data-ai-hint="person casual" />
                         <AvatarFallback>
-                        {user.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
+                        {user.email ? user.email.charAt(0).toUpperCase() : <UserIcon />}
                         </AvatarFallback>
                     </>
                 ) : (
@@ -87,12 +91,12 @@ export function Header() {
           <DropdownMenuContent align="end">
             {user ? (
                 <>
-                    <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+                    <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Profile</DropdownMenuItem>
                     <DropdownMenuItem>Settings</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                 </>
             ) : (
                 <Link href="/login" passHref>

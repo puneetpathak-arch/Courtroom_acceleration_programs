@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUser } from '@/context/user-context';
-import { users } from '@/lib/data';
-import type { User, UserRole } from '@/lib/types';
+import { useState } from 'react';
+import { useRouter, redirect } from 'next/navigation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuth, useUser } from '@/firebase';
+import Link from 'next/link';
+
 import {
   Card,
   CardContent,
@@ -16,55 +17,41 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
-  const { login } = useUser();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole | ''>('');
   const [error, setError] = useState('');
-  const [isClient, setIsClient] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
-
-    if (!email || !password || !role) {
-        setError('Please fill in all fields.');
-        return;
-    }
-
-    const user = users.find((u) => u.email === email);
-
-    if (user && user.roles.includes(role as UserRole)) {
-      login(user);
-      router.push('/dashboard');
-    } else {
-      setError('Invalid email or role. Please try again.');
+    setIsLoggingIn(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged in FirebaseProvider will handle the redirect
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
-  
-  const allRoles = Array.from(new Set(users.flatMap(u => u.roles)));
 
-  if (!isClient) {
+  if (isUserLoading) {
     return (
-        <div className="flex min-h-screen items-center justify-center bg-background p-4">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
     );
+  }
+
+  if (user) {
+    redirect('/dashboard');
   }
 
   return (
@@ -80,6 +67,7 @@ export default function LoginPage() {
           {error && (
              <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Login Failed</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
              </Alert>
           )}
@@ -92,6 +80,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoggingIn}
             />
           </div>
           <div className="grid gap-2">
@@ -102,28 +91,21 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="********"
+                disabled={isLoggingIn}
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="role">Role</Label>
-            <Select onValueChange={(value) => setRole(value as UserRole)} value={role}>
-              <SelectTrigger id="role">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                {allRoles.map((r) => (
-                    <SelectItem key={r} value={r}>
-                        {r.charAt(0).toUpperCase() + r.slice(1)}
-                    </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </CardContent>
-        <CardFooter>
-          <Button className="w-full" onClick={handleLogin}>
+        <CardFooter className="flex flex-col gap-4">
+          <Button className="w-full" onClick={handleLogin} disabled={isLoggingIn}>
+            {isLoggingIn ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Sign In
           </Button>
+          <p className="text-sm text-center text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="text-primary hover:underline">
+              Sign up
+            </Link>
+          </p>
         </CardFooter>
       </Card>
     </div>
