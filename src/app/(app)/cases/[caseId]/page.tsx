@@ -1,3 +1,4 @@
+
 import { notFound } from "next/navigation";
 import {
   Card,
@@ -105,14 +106,14 @@ export default function CaseDetailPage({ params }: { params: { caseId: string } 
                 <CardContent>
                     {nextHearing ? (
                         <div className="space-y-2">
-                            <p className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                                 {nextHearing.mode === 'virtual' && <Video className="w-4 h-4 text-accent" />}
                                 {nextHearing.mode === 'hybrid' && <Users className="w-4 h-4 text-accent" />}
                                 {nextHearing.mode === 'physical' && <Gavel className="w-4 h-4 text-accent" />}
                                 <strong>{format(new Date(nextHearing.startTime), "EEE, MMM d, yyyy 'at' h:mm a")}</strong>
-                            </p>
+                            </div>
                             <p className="text-sm text-muted-foreground">in {nextHearing.room}</p>
-                            <p className="text-sm text-muted-foreground">Mode: <Badge variant="outline">{nextHearing.mode}</Badge></p>
+                            <div className="text-sm text-muted-foreground">Mode: <Badge variant="outline">{nextHearing.mode}</Badge></div>
                             <Button className="w-full mt-2" size="sm">Join Hearing</Button>
                         </div>
                     ) : (
