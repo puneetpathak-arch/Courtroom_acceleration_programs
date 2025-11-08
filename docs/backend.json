@@ -11,6 +11,10 @@
           "description": "Unique identifier for the user.",
           "format": "uuid"
         },
+        "uid": {
+          "type": "string",
+          "description": "The user's Firebase Authentication UID."
+        },
         "name": {
           "type": "string",
           "description": "The user's full name."
@@ -51,6 +55,7 @@
       },
       "required": [
         "id",
+        "uid",
         "name",
         "email",
         "roles"
@@ -978,3 +983,4 @@
     "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). Authorization Independence is achieved by denormalizing authorization data (e.g., members maps) into subcollections where necessary, avoiding `get()` calls in security rules. Structural Segregation is employed by separating data with different access requirements into distinct collections. Access Modeling follows consistent patterns, such as path-based ownership for user-owned data and membership maps for collaborative data. This structure facilitates simple and robust security rules, enabling secure `list` operations and enforcing data integrity.  For instance, user-specific data is stored under `/users/{userId}`, while collaborative data like cases uses a membership model where appropriate.  The design includes paths for core entities such as users, courts, cases, hearings, transcripts, and mediators, with subcollections for related data.  This organization allows for efficient querying and granular access control at each level."
   }
 }
+    

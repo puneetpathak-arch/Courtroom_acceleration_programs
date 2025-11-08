@@ -51,13 +51,13 @@ service cloud.firestore {
      */
     match /users/{userId} {
       // Allows a user to create their own document, enforcing that the document ID matches their user ID.
-      allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.id == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.uid == userId;
       // Allows a user to read their own document.
       allow get: if isSignedIn() && isOwner(userId);
       // Allows a user to list their own document - in practice, there is only one.
       allow list: if false;
       // Allows a user to update their own document.  Enforces immutability of the user ID.
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.uid == resource.data.uid;
       // Allows a user to delete their own document.
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
@@ -385,3 +385,4 @@ service cloud.firestore {
     }
   }
 }
+    
