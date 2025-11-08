@@ -50,6 +50,14 @@ import type { Case, CaseStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+const ClientSideDate = ({ date }: { date: string }) => {
+    const [formattedDate, setFormattedDate] = React.useState('');
+    React.useEffect(() => {
+        setFormattedDate(format(new Date(date), "PPp"));
+    }, [date]);
+    return <>{formattedDate}</>;
+};
+
 export const statusColors: Record<CaseStatus, string> = {
   filed: "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-400",
   listed: "border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-400",
@@ -98,7 +106,7 @@ const columns: ColumnDef<Case>[] = [
     header: "Next Hearing",
     cell: ({ row }) => {
       const hearing = findHearing(row.getValue("nextHearingId"));
-      return hearing ? format(new Date(hearing.startTime), "PPp") : "Not Scheduled";
+      return hearing ? <ClientSideDate date={hearing.startTime} /> : "Not Scheduled";
     },
   },
   {
