@@ -115,9 +115,9 @@ const columns: ColumnDef<Case>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link href={`/cases/${caseItem.caseId}`} passHref>
-              <DropdownMenuItem asChild><a>View Details</a></DropdownMenuItem>
-            </Link>
+            <DropdownMenuItem asChild>
+              <Link href={`/cases/${caseItem.caseId}`}>View Details</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Generate Summary</DropdownMenuItem>
             <DropdownMenuItem>Request Adjournment</DropdownMenuItem>
           </DropdownMenuContent>
