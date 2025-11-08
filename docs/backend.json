@@ -1,0 +1,980 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "roles": {
+          "type": "array",
+          "description": "List of roles assigned to the user (judge, lawyer, litigant, clerk, admin, mediator).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "orgId": {
+          "type": "string",
+          "description": "Reference to Organization. (Relationship: Organization 1:N User)"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "locale": {
+          "type": "string",
+          "description": "The user's preferred locale."
+        },
+        "registeredAt": {
+          "type": "string",
+          "description": "Timestamp of when the user registered.",
+          "format": "date-time"
+        },
+        "metadata": {
+          "type": "string",
+          "description": "Additional metadata associated with the user."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "roles"
+      ]
+    },
+    "Court": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Court",
+      "type": "object",
+      "description": "Represents a court in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the court.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the court."
+        },
+        "location": {
+          "type": "string",
+          "description": "The location of the court."
+        },
+        "courtsRooms": {
+          "type": "array",
+          "description": "courtRooms at this court",
+          "items": {
+            "type": "string"
+          }
+        },
+        "judges": {
+          "type": "array",
+          "description": "Reference to Judges. (Relationship: Court 1:N Judges)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "contactInfo": {
+          "type": "string",
+          "description": "Contact information for the court."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "location"
+      ]
+    },
+    "Case": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Case",
+      "type": "object",
+      "description": "Represents a legal case.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the case.",
+          "format": "uuid"
+        },
+        "caseId": {
+          "type": "string",
+          "description": "The ID for the case."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the case."
+        },
+        "filerId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Case)"
+        },
+        "parties": {
+          "type": "array",
+          "description": "List of parties involved in the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "respondents": {
+          "type": "array",
+          "description": "List of respondents in the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "assignedJudgeId": {
+          "type": "string",
+          "description": "Reference to User (Judge). (Relationship: User 1:N Case)"
+        },
+        "courtId": {
+          "type": "string",
+          "description": "Reference to Court. (Relationship: Court 1:N Case)"
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the case (filed, listed, hearing, adjourned, judgment, closed).",
+          "format": "uuid"
+        },
+        "tags": {
+          "type": "array",
+          "description": "List of tags associated with the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "complexity": {
+          "type": "string",
+          "description": "The complexity level of the case."
+        },
+        "estimatedTrialDays": {
+          "type": "number",
+          "description": "Estimated number of trial days."
+        },
+        "filings": {
+          "type": "array",
+          "description": "References to files stored.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "adjournments": {
+          "type": "string",
+          "description": "Adjournments data for the case."
+        },
+        "delayCount": {
+          "type": "number",
+          "description": "Number of delays in the case."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the case was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the case was last updated.",
+          "format": "date-time"
+        },
+        "nextHearingId": {
+          "type": "string",
+          "description": "Reference to Hearing. (Relationship: Case 1:1 Hearing)"
+        }
+      },
+      "required": [
+        "id",
+        "caseId",
+        "title",
+        "filerId",
+        "courtId",
+        "status"
+      ]
+    },
+    "Hearing": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Hearing",
+      "type": "object",
+      "description": "Represents a court hearing.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the hearing.",
+          "format": "uuid"
+        },
+        "caseId": {
+          "type": "string",
+          "description": "Reference to Case. (Relationship: Case 1:N Hearing)"
+        },
+        "judgeId": {
+          "type": "string",
+          "description": "Reference to User (Judge). (Relationship: User 1:N Hearing)"
+        },
+        "startTime": {
+          "type": "string",
+          "description": "The start time of the hearing.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "The end time of the hearing.",
+          "format": "date-time"
+        },
+        "room": {
+          "type": "string",
+          "description": "The room where the hearing is held."
+        },
+        "mode": {
+          "type": "string",
+          "description": "The mode of the hearing (virtual, hybrid, physical)."
+        },
+        "meetingLinkMeta": {
+          "type": "string",
+          "description": "Metadata about the meeting link (link, expiresAt, tokenId)."
+        },
+        "participants": {
+          "type": "array",
+          "description": "List of participants in the hearing.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transcripts": {
+          "type": "array",
+          "description": "Reference to Transcripts. (Relationship: Hearing 1:N Transcript)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the hearing was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "caseId",
+        "judgeId",
+        "startTime",
+        "endTime",
+        "mode"
+      ]
+    },
+    "CaseTag": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CaseTag",
+      "type": "object",
+      "description": "Represents tags associated with a case.",
+      "properties": {
+        "caseId": {
+          "type": "string",
+          "description": "Reference to Case. (Relationship: Case 1:1 CaseTag)"
+        },
+        "issues": {
+          "type": "array",
+          "description": "List of issues related to the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "description": "List of tags associated with the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "complexity": {
+          "type": "string",
+          "description": "The complexity level of the case."
+        },
+        "estimatedTrialDays": {
+          "type": "number",
+          "description": "Estimated number of trial days."
+        },
+        "extractedDates": {
+          "type": "array",
+          "description": "List of dates extracted from the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the case tags were last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "caseId"
+      ]
+    },
+    "CaseSummary": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CaseSummary",
+      "type": "object",
+      "description": "Represents a summary of a case.",
+      "properties": {
+        "caseId": {
+          "type": "string",
+          "description": "Reference to Case. (Relationship: Case 1:1 CaseSummary)"
+        },
+        "summaryText": {
+          "type": "string",
+          "description": "The summary text of the case."
+        },
+        "issues": {
+          "type": "array",
+          "description": "List of issues related to the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "citations": {
+          "type": "array",
+          "description": "List of citations related to the case.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generatedBy": {
+          "type": "string",
+          "description": "The user or system that generated the summary."
+        },
+        "generatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the summary was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "caseId"
+      ]
+    },
+    "Transcript": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transcript",
+      "type": "object",
+      "description": "Represents a transcript of a hearing.",
+      "properties": {
+        "hearingId": {
+          "type": "string",
+          "description": "Reference to Hearing. (Relationship: Hearing 1:N Transcript)"
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Transcript.",
+          "format": "uuid"
+        },
+        "storagePath": {
+          "type": "string",
+          "description": "The path to the transcript file in storage."
+        },
+        "language": {
+          "type": "string",
+          "description": "The language of the transcript."
+        },
+        "confidence": {
+          "type": "number",
+          "description": "The confidence level of the transcription."
+        },
+        "segments": {
+          "type": "array",
+          "description": "Segments of the transcript.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the transcript was created.",
+          "format": "date-time"
+        },
+        "accessRestricted": {
+          "type": "boolean",
+          "description": "Indicates if access to the transcript is restricted."
+        }
+      },
+      "required": [
+        "hearingId",
+        "id",
+        "storagePath",
+        "language"
+      ]
+    },
+    "Mediator": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Mediator",
+      "type": "object",
+      "description": "Represents a mediator.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the mediator.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the mediator."
+        },
+        "languages": {
+          "type": "array",
+          "description": "List of languages spoken by the mediator.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expertiseTags": {
+          "type": "array",
+          "description": "List of expertise tags for the mediator.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "location": {
+          "type": "string",
+          "description": "The location of the mediator."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The rating of the mediator."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "MediationRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MediationRequest",
+      "type": "object",
+      "description": "Represents a request for mediation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the mediation request.",
+          "format": "uuid"
+        },
+        "caseId": {
+          "type": "string",
+          "description": "Reference to Case. (Relationship: Case 1:N MediationRequest)"
+        },
+        "suggestedByBot": {
+          "type": "boolean",
+          "description": "Indicates if the mediation request was suggested by a bot."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the mediation request."
+        },
+        "mediatorId": {
+          "type": "string",
+          "description": "Reference to Mediator. (Relationship: Mediator 1:N MediationRequest)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the mediation request was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "caseId"
+      ]
+    },
+    "Penalty": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Penalty",
+      "type": "object",
+      "description": "Represents a penalty imposed on a case.",
+      "properties": {
+        "caseId": {
+          "type": "string",
+          "description": "Reference to Case. (Relationship: Case 1:N Penalty)"
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Penalty.",
+          "format": "uuid"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the penalty."
+        },
+        "reason": {
+          "type": "string",
+          "description": "The reason for the penalty."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the penalty was created.",
+          "format": "date-time"
+        },
+        "paid": {
+          "type": "boolean",
+          "description": "Indicates if the penalty has been paid."
+        }
+      },
+      "required": [
+        "caseId",
+        "id",
+        "amount",
+        "reason"
+      ]
+    },
+    "MinistryCase": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MinistryCase",
+      "type": "object",
+      "description": "Represents a case for a ministry.",
+      "properties": {
+        "ministryId": {
+          "type": "string",
+          "description": "Reference to Ministry. (Relationship: Ministry 1:N Case)"
+        },
+        "caseId": {
+          "type": "string",
+          "description": "Reference to Case. (Relationship: Case 1:N MinistryCase)"
+        }
+      },
+      "required": [
+        "ministryId",
+        "caseId"
+      ]
+    },
+    "Course": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Course",
+      "type": "object",
+      "description": "Represents a course in the e-Judiciary Academy.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the course.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the course."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the course."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Module": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Module",
+      "type": "object",
+      "description": "Represents a module within a course.",
+      "properties": {
+        "courseId": {
+          "type": "string",
+          "description": "Reference to Course. (Relationship: Course 1:N Module)"
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the module.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the module."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content of the module."
+        }
+      },
+      "required": [
+        "courseId",
+        "id",
+        "name"
+      ]
+    },
+    "Simulation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Simulation",
+      "type": "object",
+      "description": "Represents a simulation in the e-Judiciary Academy.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the simulation.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the simulation."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the simulation."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Enrollment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Enrollment",
+      "type": "object",
+      "description": "Represents a user's enrollment in a course.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Enrollment)"
+        },
+        "id": {
+          "type": "string",
+          "description": "Reference to Course. (Relationship: Course 1:N Enrollment)"
+        },
+        "enrolledAt": {
+          "type": "string",
+          "description": "Timestamp of when the user enrolled in the course.",
+          "format": "date-time"
+        },
+        "progress": {
+          "type": "number",
+          "description": "The user's progress in the course."
+        }
+      },
+      "required": [
+        "userId",
+        "id"
+      ]
+    },
+    "Organization": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Organization",
+      "type": "object",
+      "description": "Represents an organization (e.g. Law Firm).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the organization.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the organization."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Contact email for the organization.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user data. The 'userId' parameter identifies the user. All data for a user is stored under this path, creating clear ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/courts/{courtId}",
+        "definition": {
+          "entityName": "Court",
+          "schema": {
+            "$ref": "#/backend/entities/Court"
+          },
+          "description": "Stores court data. The 'courtId' parameter identifies the court.",
+          "params": [
+            {
+              "name": "courtId",
+              "description": "The unique identifier for the court."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/cases/{caseId}",
+        "definition": {
+          "entityName": "Case",
+          "schema": {
+            "$ref": "#/backend/entities/Case"
+          },
+          "description": "Stores case data. The 'caseId' parameter identifies the case. Cases are top-level collections for broad accessibility and listing.",
+          "params": [
+            {
+              "name": "caseId",
+              "description": "The unique identifier for the case."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/hearings/{hearingId}",
+        "definition": {
+          "entityName": "Hearing",
+          "schema": {
+            "$ref": "#/backend/entities/Hearing"
+          },
+          "description": "Stores hearing data. The 'hearingId' parameter identifies the hearing.",
+          "params": [
+            {
+              "name": "hearingId",
+              "description": "The unique identifier for the hearing."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/case_tags/{caseId}",
+        "definition": {
+          "entityName": "CaseTag",
+          "schema": {
+            "$ref": "#/backend/entities/CaseTag"
+          },
+          "description": "Stores case tags. The 'caseId' parameter identifies the case.",
+          "params": [
+            {
+              "name": "caseId",
+              "description": "The unique identifier for the case."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/case_summaries/{caseId}",
+        "definition": {
+          "entityName": "CaseSummary",
+          "schema": {
+            "$ref": "#/backend/entities/CaseSummary"
+          },
+          "description": "Stores case summaries. The 'caseId' parameter identifies the case.",
+          "params": [
+            {
+              "name": "caseId",
+              "description": "The unique identifier for the case."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/transcripts/{hearingId}/{transcriptId}",
+        "definition": {
+          "entityName": "Transcript",
+          "schema": {
+            "$ref": "#/backend/entities/Transcript"
+          },
+          "description": "Stores transcripts. The 'hearingId' parameter identifies the hearing, and 'transcriptId' identifies the transcript.",
+          "params": [
+            {
+              "name": "hearingId",
+              "description": "The unique identifier for the hearing."
+            },
+            {
+              "name": "transcriptId",
+              "description": "The unique identifier for the transcript."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/mediators/{mediatorId}",
+        "definition": {
+          "entityName": "Mediator",
+          "schema": {
+            "$ref": "#/backend/entities/Mediator"
+          },
+          "description": "Stores mediator data. The 'mediatorId' parameter identifies the mediator.",
+          "params": [
+            {
+              "name": "mediatorId",
+              "description": "The unique identifier for the mediator."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/mediation_requests/{requestId}",
+        "definition": {
+          "entityName": "MediationRequest",
+          "schema": {
+            "$ref": "#/backend/entities/MediationRequest"
+          },
+          "description": "Stores mediation requests. The 'requestId' parameter identifies the mediation request.",
+          "params": [
+            {
+              "name": "requestId",
+              "description": "The unique identifier for the mediation request."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/penalties/{caseId}/{penaltyId}",
+        "definition": {
+          "entityName": "Penalty",
+          "schema": {
+            "$ref": "#/backend/entities/Penalty"
+          },
+          "description": "Stores penalties for cases. The 'caseId' parameter identifies the case, and 'penaltyId' identifies the penalty.",
+          "params": [
+            {
+              "name": "caseId",
+              "description": "The unique identifier for the case."
+            },
+            {
+              "name": "penaltyId",
+              "description": "The unique identifier for the penalty."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/ministries/{ministryId}/cases/{caseId}",
+        "definition": {
+          "entityName": "MinistryCase",
+          "schema": {
+            "$ref": "#/backend/entities/MinistryCase"
+          },
+          "description": "Stores cases related to ministries. The 'ministryId' parameter identifies the ministry, and 'caseId' identifies the case.",
+          "params": [
+            {
+              "name": "ministryId",
+              "description": "The unique identifier for the ministry."
+            },
+            {
+              "name": "caseId",
+              "description": "The unique identifier for the case."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/courses/{courseId}",
+        "definition": {
+          "entityName": "Course",
+          "schema": {
+            "$ref": "#/backend/entities/Course"
+          },
+          "description": "Stores course data. The 'courseId' parameter identifies the course.",
+          "params": [
+            {
+              "name": "courseId",
+              "description": "The unique identifier for the course."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/courses/{courseId}/modules/{moduleId}",
+        "definition": {
+          "entityName": "Module",
+          "schema": {
+            "$ref": "#/backend/entities/Module"
+          },
+          "description": "Stores modules within courses. The 'courseId' parameter identifies the course, and 'moduleId' identifies the module.",
+          "params": [
+            {
+              "name": "courseId",
+              "description": "The unique identifier for the course."
+            },
+            {
+              "name": "moduleId",
+              "description": "The unique identifier for the module."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/simulations/{simulationId}",
+        "definition": {
+          "entityName": "Simulation",
+          "schema": {
+            "$ref": "#/backend/entities/Simulation"
+          },
+          "description": "Stores simulation data. The 'simulationId' parameter identifies the simulation.",
+          "params": [
+            {
+              "name": "simulationId",
+              "description": "The unique identifier for the simulation."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/enrollments/{userId}/{courseId}",
+        "definition": {
+          "entityName": "Enrollment",
+          "schema": {
+            "$ref": "#/backend/entities/Enrollment"
+          },
+          "description": "Stores user enrollments. The 'userId' parameter identifies the user, and 'courseId' identifies the course.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "courseId",
+              "description": "The unique identifier for the course."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}",
+        "definition": {
+          "entityName": "Organization",
+          "schema": {
+            "$ref": "#/backend/entities/Organization"
+          },
+          "description": "Stores organization data. The 'organizationId' parameter identifies the organization.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the organization."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). Authorization Independence is achieved by denormalizing authorization data (e.g., members maps) into subcollections where necessary, avoiding `get()` calls in security rules. Structural Segregation is employed by separating data with different access requirements into distinct collections. Access Modeling follows consistent patterns, such as path-based ownership for user-owned data and membership maps for collaborative data. This structure facilitates simple and robust security rules, enabling secure `list` operations and enforcing data integrity.  For instance, user-specific data is stored under `/users/{userId}`, while collaborative data like cases uses a membership model where appropriate.  The design includes paths for core entities such as users, courts, cases, hearings, transcripts, and mediators, with subcollections for related data.  This organization allows for efficient querying and granular access control at each level."
+  }
+}
