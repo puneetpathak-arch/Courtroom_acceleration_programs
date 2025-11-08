@@ -1,69 +1,117 @@
 "use client";
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/user-context';
 import { users } from '@/lib/data';
-import type { User } from '@/lib/types';
+import type { User, UserRole } from '@/lib/types';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useUser();
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<UserRole | ''>('');
+  const [error, setError] = useState('');
 
-  const handleLogin = (user: User) => {
-    login(user);
-    router.push('/dashboard');
+  const handleLogin = () => {
+    setError('');
+
+    if (!email || !password || !role) {
+        setError('Please fill in all fields.');
+        return;
+    }
+
+    const user = users.find((u) => u.email === email);
+
+    if (user && user.roles.includes(role as UserRole)) {
+      login(user);
+      router.push('/dashboard');
+    } else {
+      setError('Invalid email or role. Please try again.');
+    }
   };
+  
+  const allRoles = Array.from(new Set(users.flatMap(u => u.roles)));
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Select a user to log in</CardTitle>
+          <CardTitle className="font-headline text-2xl">Login</CardTitle>
           <CardDescription>
-            This is a simulated login. Choose a profile to continue.
+            Enter your credentials to access your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {users.map((user) => (
-            <div
-              key={user.uid}
-              className="flex items-center justify-between rounded-lg border p-4"
-            >
-              <div className="flex items-center gap-4">
-                <Avatar>
-                  <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback>
-                    {user.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold">{user.name}</p>
-                  <div className="flex gap-2 mt-1">
-                    {user.roles.map((role) => (
-                      <Badge key={role} variant="secondary">
-                        {role}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <Button onClick={() => handleLogin(user)}>Login as {user.name.split(' ')[0]}</Button>
-            </div>
-          ))}
+          {error && (
+             <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+             </Alert>
+          )}
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="judge.smith@courts.gov"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input 
+                id="password" 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="********"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="role">Role</Label>
+            <Select onValueChange={(value) => setRole(value as UserRole)} value={role}>
+              <SelectTrigger id="role">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                {allRoles.map((r) => (
+                    <SelectItem key={r} value={r}>
+                        {r.charAt(0).toUpperCase() + r.slice(1)}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
+        <CardFooter>
+          <Button className="w-full" onClick={handleLogin}>
+            Sign In
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
