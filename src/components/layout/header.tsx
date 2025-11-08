@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { users } from "@/lib/data";
+import { useUser } from "@/context/user-context";
 
 const getTitleFromPath = (path: string) => {
   if (path.startsWith("/cases/")) {
@@ -40,7 +40,7 @@ const getTitleFromPath = (path: string) => {
 export function Header() {
   const pathname = usePathname();
   const title = getTitleFromPath(pathname);
-  const currentUser = users[4]; // Mock current user as admin
+  const { user, logout } = useUser();
 
   return (
     <header className="flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 sticky top-0 z-30">
@@ -68,23 +68,37 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="person casual" />
-                <AvatarFallback>
-                  {currentUser.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
+                {user ? (
+                    <>
+                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person casual" />
+                        <AvatarFallback>
+                        {user.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                    </>
+                ) : (
+                    <AvatarFallback><UserIcon /></AvatarFallback>
+                )}
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            {user ? (
+                <>
+                    <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Profile</DropdownMenuItem>
+                    <DropdownMenuItem>Settings</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                </>
+            ) : (
+                <Link href="/login" passHref>
+                    <DropdownMenuItem>Login</DropdownMenuItem>
+                </Link>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
