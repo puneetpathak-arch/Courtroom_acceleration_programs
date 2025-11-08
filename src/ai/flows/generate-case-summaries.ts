@@ -19,7 +19,7 @@ export type GenerateCaseSummaryInput = z.infer<typeof GenerateCaseSummaryInputSc
 const GenerateCaseSummaryOutputSchema = z.object({
   summaryText: z.string().describe('A summary of the legal case.'),
   issues: z.array(z.string()).describe('List of key issues in the case.'),
-  citations: z.array(z.string()).describe('List of suggested legal citations.'),
+  citations: z.array(z.string()).describe('List of suggested legal citations based on precedent.'),
   generatedBy: z.string().describe('The ID of the user who generated the summary.'),
   generatedAt: z.date().describe('The timestamp when the summary was generated.'),
 });
@@ -33,24 +33,33 @@ const prompt = ai.definePrompt({
   name: 'generateCaseSummaryPrompt',
   input: {schema: GenerateCaseSummaryInputSchema},
   output: {schema: GenerateCaseSummaryOutputSchema},
-  prompt: `You are an expert legal assistant tasked with summarizing legal cases for lawyers.
+  prompt: `You are an expert legal assistant (SUPACE) tasked with summarizing legal cases for lawyers and judges.
 
-  Given the following case filings, create a concise summary of the case, identify the key legal issues,
-  and suggest relevant legal citations.
+  Given the following case filings, create a concise summary of the case. Identify the key legal issues involved.
+  Then, to help with legal research, suggest relevant legal citations and precedents from historical cases. Explain briefly why each citation is relevant.
 
   Case ID: {{{caseId}}}
   Filings: {{#each filings}}{{{this}}}\n{{/each}}
   \n
   Summary:
-  `,config: {
+  `,
+  config: {
     safetySettings: [
       {
         category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_ONLY_HIGH',
+        threshold: 'BLOCK_NONE',
       },
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',
-        threshold: 'BLOCK_ONLY_HIGH',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_HARASSMENT',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        threshold: 'BLOCK_NONE',
       },
     ],
   },
