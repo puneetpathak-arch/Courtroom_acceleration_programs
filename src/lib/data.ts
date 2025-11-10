@@ -24,6 +24,7 @@ export const cases: Case[] = [
     status: 'hearing',
     tags: ['Contract Dispute', 'Construction'],
     complexity: 'medium',
+    counselIds: ['user-lawyer-1'],
     filings: [
       { name: 'Initial Complaint.pdf', url: '#', uploadedAt: '2024-05-01' },
       { name: 'Response to Complaint.pdf', url: '#', uploadedAt: '2024-05-15' },
@@ -43,6 +44,7 @@ export const cases: Case[] = [
     status: 'filed',
     tags: ['Family Law', 'Custody'],
     complexity: 'high',
+    counselIds: ['user-lawyer-1'],
     filings: [
       { name: 'Divorce Petition.pdf', url: '#', uploadedAt: '2024-06-20' }
     ],
@@ -61,6 +63,7 @@ export const cases: Case[] = [
     status: 'adjourned',
     tags: ['Theft', 'Criminal'],
     complexity: 'low',
+    counselIds: [],
     filings: [],
     createdAt: '2024-04-15T09:00:00Z',
     updatedAt: '2024-06-05T16:00:00Z',
@@ -77,6 +80,7 @@ export const cases: Case[] = [
     status: 'judgment',
     tags: ['Intellectual Property', 'Patent Law'],
     complexity: 'high',
+    counselIds: ['user-lawyer-1'],
     filings: [],
     createdAt: '2024-01-10T15:00:00Z',
     updatedAt: '2024-05-30T11:00:00Z',
@@ -92,6 +96,7 @@ export const cases: Case[] = [
     status: 'closed',
     tags: ['Tenancy', 'Eviction'],
     complexity: 'low',
+    counselIds: [],
     filings: [],
     createdAt: '2024-03-01T12:00:00Z',
     updatedAt: '2024-04-15T10:00:00Z',
@@ -107,6 +112,7 @@ export const cases: Case[] = [
     status: 'filed',
     tags: ['Tenancy', 'Rent'],
     complexity: 'low',
+    counselIds: [],
     filings: [],
     createdAt: '2025-10-01T10:05:00Z',
     updatedAt: '2025-10-01T10:05:00Z',

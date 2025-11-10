@@ -29,6 +29,7 @@ export interface Case {
   status: CaseStatus;
   tags: string[];
   complexity: 'low' | 'medium' | 'high';
+  counselIds?: string[];
   filings: CaseFile[];
   createdAt: string;
   updatedAt: string;
