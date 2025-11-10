@@ -4,9 +4,7 @@
 import type { User } from 'firebase/auth';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
-import { Calendar, CheckSquare, FilePlus, Gavel, Users } from 'lucide-react';
-import { CaseTable } from '../cases/case-table';
-import TodaysHearings from './todays-hearings';
+import { FilePlus, Gavel, Users } from 'lucide-react';
 
 export default function ClerkDashboard({ user }: { user: User }) {
   // In a real app, these would be filtered based on clerk's court/role
