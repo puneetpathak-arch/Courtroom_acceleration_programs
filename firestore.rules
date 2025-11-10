@@ -92,15 +92,26 @@ service cloud.firestore {
       allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
     }
 
+    /**
+     * @description Mediator profiles are publicly readable, but only the mediator can edit their own profile.
+     */
     match /mediators/{mediatorId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      // The mediatorId must match the authenticated user's UID to allow updates.
+      allow update: if isSignedIn() && isOwner(mediatorId);
+      allow create, delete: if hasRole('admin'); // Only admins can create or delete mediator profiles.
     }
 
+    /**
+     * @description Mediation requests can be read by anyone.
+     * Only an assigned mediator or an admin can update the request.
+     */
     match /mediation_requests/{requestId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
-// TODO: Add clerk/admin role validation for writes.
+      allow create: if isSignedIn();
+      // Assumes the request document has a `mediatorId` field.
+      allow update: if isSignedIn() && (isOwner(resource.data.mediatorId) || hasRole('admin') || hasRole('clerk'));
+      allow delete: if hasRole('admin');
     }
 
     match /penalties/{caseId}/{penaltyId} {

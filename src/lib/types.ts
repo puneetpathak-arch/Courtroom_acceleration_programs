@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'judge' | 'lawyer' | 'litigant' | 'clerk' | 'admin' | 'mediator';
 
 export interface User {
@@ -8,6 +9,14 @@ export interface User {
   roles: UserRole[];
   avatarUrl: string;
   registeredAt?: string;
+}
+
+export interface Mediator extends User {
+    mediatorId: string;
+    languages: string[];
+    expertiseTags: string[];
+    availability: { day: string; slots: string[] }[];
+    rating: number;
 }
 
 export type CaseStatus = 'filed' | 'listed' | 'hearing' | 'adjourned' | 'judgment' | 'closed';
