@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { Calendar, CheckCircle, Languages, MessageSquare, Star, Tags, Video } from 'lucide-react';
 import { users } from '@/lib/data';
+import { MediationChat } from '../mediation/mediation-chat';
 
 const assignedCases = [
     { id: 'MED-001', caseId: 'CIV-2024-001', title: 'InfraCorp vs. GreenScape Builders', status: 'Requested' },
@@ -69,15 +70,16 @@ export default function MediatorDashboard({ user }: { user: User }) {
              <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Video /> Mediation Tools</CardTitle>
-                    <CardDescription>Generate links and communicate securely with parties.</CardDescription>
+                    <CardDescription>Generate links and communicate securely with parties for case 'InfraCorp vs. GreenScape Builders'.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-6">
                         {/* In a real app, this would call a cloud function like `/mediator/acceptRequest` */}
                         <Button><Video className="mr-2"/> Generate Mediation Link</Button>
                          {/* This would open a secure chat interface */}
                         <Button variant="secondary"><MessageSquare className="mr-2" /> Open Secure Chat</Button>
                     </div>
+                    <MediationChat />
                 </CardContent>
             </Card>
         </div>
