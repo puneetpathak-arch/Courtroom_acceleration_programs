@@ -6,9 +6,9 @@ export const users: User[] = [
   { uid: 'user-judge-1', name: 'Hon. Judge Smith', email: 'judge.smith@courts.gov', roles: ['judge'], avatarUrl: placeholderImages[0].imageUrl },
   { uid: 'user-lawyer-1', name: 'Adv. Priya Sharma', email: 'priya.sharma@lawfirm.com', roles: ['lawyer'], avatarUrl: placeholderImages[1].imageUrl },
   { uid: 'user-litigant-1', name: 'Rajesh Kumar', email: 'rajesh.k@email.com', roles: ['litigant'], avatarUrl: placeholderImages[2].imageUrl },
-  { uid: 'user-clerk-1', name: 'Anjali Desai', email: 'a.desai@courts.gov', roles: ['clerk'], avatarUrl: placeholderImages[3].imageUrl },
+  { uid: 'user-clerk-1', name: 'Anjali Desai', email: 'clerk.desai@courts.gov', roles: ['clerk'], avatarUrl: placeholderImages[3].imageUrl },
   { uid: 'user-admin-1', name: 'Admin User', email: 'admin@courts.gov', roles: ['admin'], avatarUrl: placeholderImages[4].imageUrl },
-  { uid: 'user-mediator-1', name: 'Samuel Green', email: 'sam.green@mediation.org', roles: ['mediator'], avatarUrl: 'https://picsum.photos/seed/user-mediator-1/400/400' },
+  { uid: 'user-mediator-1', name: 'Samuel Green', email: 'mediator.green@mediation.org', roles: ['mediator'], avatarUrl: 'https://picsum.photos/seed/user-mediator-1/400/400' },
   { uid: 'litigant_1', name: 'Asha Sharma', email: 'asha@example.com', roles: ['litigant'], avatarUrl: placeholderImages[2].imageUrl, registeredAt: '2025-10-01T10:00:00Z' },
 ];
 

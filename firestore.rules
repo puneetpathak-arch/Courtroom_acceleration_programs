@@ -46,7 +46,7 @@ service cloud.firestore {
      */
     match /courts/{courtId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if hasRole('admin');
     }
 
     /**
@@ -54,17 +54,18 @@ service cloud.firestore {
      * Read access is granted to case parties, assigned officials, or admins.
      */
     match /cases/{caseId} {
-      allow get: if isSignedIn() && (isParty(resource.data.parties) || hasRole('admin') || isAssignedOfficial(caseId));
+      allow get: if isSignedIn() && (isParty(resource.data.parties) || hasRole('admin') || isAssignedOfficial(caseId) || hasRole('clerk'));
       allow list: if isSignedIn(); // More complex list queries should be handled by backend logic/functions.
-      allow create, update, delete: if false; // TODO: Add admin/clerk role validation for writes.
-      
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
+
       /**
        * @description Controls access to case filings subcollection.
        * Only the original filer can create (upload) new documents.
        */
       match /filings/{filingId} {
         allow create: if isSignedIn() && isOwner(get(/databases/$(database)/documents/cases/$(caseId)).data.filerId);
-        allow read, update, delete: if false; // Access inherited from parent case.
+        allow read, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
       }
     }
 
@@ -73,22 +74,22 @@ service cloud.firestore {
      */
     match /hearings/{hearingId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
     }
 
     match /case_tags/{caseId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
     }
 
     match /case_summaries/{caseId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
     }
 
     match /transcripts/{hearingId}/{transcriptId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
     }
 
     match /mediators/{mediatorId} {
@@ -99,11 +100,13 @@ service cloud.firestore {
     match /mediation_requests/{requestId} {
       allow get, list: if true;
       allow create, update, delete: if false;
+// TODO: Add clerk/admin role validation for writes.
     }
 
     match /penalties/{caseId}/{penaltyId} {
       allow get, list: if true;
       allow create, update, delete: if false;
+// TODO: Add clerk/admin role validation for writes.
     }
     
     match /ministries/{ministryId}/cases/{caseId} {
@@ -147,8 +150,8 @@ service cloud.firestore {
     }
     
     function hasRole(role) {
-      // Assumes custom claims are set: request.auth.token.roles
-      return request.auth.token.roles.hasAny([role]);
+      // Assumes user document has a 'roles' array.
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny([role]);
     }
 
     function isParty(partiesList) {
