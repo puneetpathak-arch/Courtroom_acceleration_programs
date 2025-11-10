@@ -1,3 +1,4 @@
+
 export type UserRole = 'judge' | 'lawyer' | 'litigant' | 'clerk' | 'admin' | 'mediator';
 
 export interface User {
@@ -6,6 +7,7 @@ export interface User {
   email: string;
   roles: UserRole[];
   avatarUrl: string;
+  registeredAt?: string;
 }
 
 export type CaseStatus = 'filed' | 'listed' | 'hearing' | 'adjourned' | 'judgment' | 'closed';

@@ -8,6 +8,7 @@ import JudgeDashboard from "@/components/dashboard/judge-dashboard";
 import LawyerDashboard from "@/components/dashboard/lawyer-dashboard";
 import ClerkDashboard from "@/components/dashboard/clerk-dashboard";
 import MediatorDashboard from "@/components/dashboard/mediator-dashboard";
+import LitigantDashboard from "@/components/dashboard/litigant-dashboard";
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
@@ -26,6 +27,8 @@ export default function DashboardPage() {
   const isLawyer = user?.email?.includes('lawyer');
   const isClerk = user?.email?.includes('clerk');
   const isMediator = user?.email?.includes('mediator');
+  const isLitigant = user?.email?.includes('litigant') || user?.email?.includes('asha');
+
 
   if (isJudge) {
     return <JudgeDashboard user={user} />;
@@ -41,6 +44,10 @@ export default function DashboardPage() {
 
   if (isMediator) {
     return <MediatorDashboard user={user} />;
+  }
+
+  if(isLitigant) {
+    return <LitigantDashboard user={user} />;
   }
 
   return <GeneralDashboard />;

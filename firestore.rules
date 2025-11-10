@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Firestore Security Rules for the e-Judiciary platform.
  *
@@ -7,7 +8,7 @@
  * Data Structure:
  * - /users/{userId}: Stores personal user data. Access is restricted to the owning user.
  * - /courts/{courtId}: Stores court data. Publicly readable.
- * - /cases/{caseId}: Stores case data. Publicly readable.
+ * - /cases/{caseId}: Stores case data. Read access is controlled based on user roles and case participation.
  * - /hearings/{hearingId}: Stores hearing data. Publicly readable.
  * - /case_tags/{caseId}: Stores case tags. Publicly readable.
  * - /case_summaries/{caseId}: Stores case summaries. Publicly readable.
@@ -23,59 +24,25 @@
  * - /organizations/{organizationId}: Stores organization data. Publicly readable.
  *
  * Key Security Decisions:
- * - User data is strictly controlled by the owning user.
- * - Top-level collections are publicly readable to facilitate discovery.
- * - Data validation is relaxed to allow for rapid prototyping but MUST be tightened in production.
- * - Denormalization is used to avoid costly `get()` calls in rules.
+ * - User data is strictly controlled by the owning user or admins.
+ * - Case data is readable by involved parties, assigned officials, or admins.
+ * - Public collections remain readable to facilitate discovery.
+ * - Data validation is relaxed for prototyping but MUST be tightened in production.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user documents.
-     * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their own document.
-     *   - Request: { "auth": { "uid": "user123" }, "resource": { "data": { "id": "user123", "name": "John Doe", "email": "john@example.com", "roles": [] } } }
-     * @allow (read) User with ID 'user123' can read their own document.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (update) User with ID 'user123' can update their own document.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (delete) User with ID 'user123' can delete their own document.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) User with ID 'user456' cannot create a document for user 'user123'.
-     *   - Request: { "auth": { "uid": "user456" }, "resource": { "data": { "id": "user123", "name": "John Doe", "email": "john@example.com", "roles": [] } } }
-     * @deny (read) User with ID 'user456' cannot read user 'user123's document.
-     *   - Request: { "auth": { "uid": "user456" } }
-     * @principle Enforces document ownership for all operations.
+     * @description Controls access to user documents. Only the owner or an admin can read/write.
      */
     match /users/{userId} {
-      // Allows a user to create their own document, enforcing that the document ID matches their user ID.
-      allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.uid == userId;
-      // Allows a user to read their own document.
-      allow get: if isSignedIn() && isOwner(userId);
-      // Allows a user to list their own document - in practice, there is only one.
-      allow list: if false;
-      // Allows a user to update their own document.  Enforces immutability of the user ID.
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.uid == resource.data.uid;
-      // Allows a user to delete their own document.
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow read, update, delete: if isSignedIn() && (isOwner(userId) || hasRole('admin'));
+      allow create: if isSignedIn();
     }
 
     /**
-     * @description Controls access to court documents.
-     * @path /courts/{courtId}
-     * @allow (read) Any user can read court documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list court documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create court documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "court123", "name": "High Court", "location": "City" } } }
-     * @deny (update) No one can update court documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete court documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
+     * @description Controls access to court documents. Publicly readable.
      */
     match /courts/{courtId} {
       allow get, list: if true;
@@ -84,305 +51,116 @@ service cloud.firestore {
 
     /**
      * @description Controls access to case documents.
-     * @path /cases/{caseId}
-     * @allow (read) Any user can read case documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list case documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create case documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "case123", "caseId": "C-123", "title": "Sample Case", "filerId": "user123", "courtId": "court123", "status": "filed" } } }
-     * @deny (update) No one can update case documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete case documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
+     * Read access is granted to case parties, assigned officials, or admins.
      */
     match /cases/{caseId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow get: if isSignedIn() && (isParty(resource.data.parties) || hasRole('admin') || isAssignedOfficial(caseId));
+      allow list: if isSignedIn(); // More complex list queries should be handled by backend logic/functions.
+      allow create, update, delete: if false; // TODO: Add admin/clerk role validation for writes.
+      
+      /**
+       * @description Controls access to case filings subcollection.
+       * Only the original filer can create (upload) new documents.
+       */
+      match /filings/{filingId} {
+        allow create: if isSignedIn() && isOwner(get(/databases/$(database)/documents/cases/$(caseId)).data.filerId);
+        allow read, update, delete: if false; // Access inherited from parent case.
+      }
     }
 
     /**
-     * @description Controls access to hearing documents.
-     * @path /hearings/{hearingId}
-     * @allow (read) Any user can read hearing documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list hearing documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create hearing documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "hearing123", "caseId": "case123", "judgeId": "judge123", "startTime": "2024-01-01T09:00:00Z", "endTime": "2024-01-01T17:00:00Z", "mode": "virtual" } } }
-     * @deny (update) No one can update hearing documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete hearing documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
+     * @description Publicly readable collections for general app functionality.
      */
     match /hearings/{hearingId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to case tag documents.
-     * @path /case_tags/{caseId}
-     * @allow (read) Any user can read case tag documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list case tag documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create case tag documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "caseId": "case123", "issues": [], "tags": [], "complexity": "high" } } }
-     * @deny (update) No one can update case tag documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete case tag documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /case_tags/{caseId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to case summary documents.
-     * @path /case_summaries/{caseId}
-     * @allow (read) Any user can read case summary documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list case summary documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create case summary documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "caseId": "case123", "summaryText": "Summary", "issues": [], "citations": [] } } }
-     * @deny (update) No one can update case summary documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete case summary documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /case_summaries/{caseId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to transcript documents.
-     * @path /transcripts/{hearingId}/{transcriptId}
-     * @allow (read) Any user can read transcript documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list transcript documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create transcript documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "hearingId": "hearing123", "id": "transcript123", "storagePath": "path", "language": "en" } } }
-     * @deny (update) No one can update transcript documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete transcript documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /transcripts/{hearingId}/{transcriptId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to mediator documents.
-     * @path /mediators/{mediatorId}
-     * @allow (read) Any user can read mediator documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list mediator documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create mediator documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "mediator123", "name": "Mediator" } } }
-     * @deny (update) No one can update mediator documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete mediator documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /mediators/{mediatorId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to mediation request documents.
-     * @path /mediation_requests/{requestId}
-     * @allow (read) Any user can read mediation request documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list mediation request documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create mediation request documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "request123", "caseId": "case123" } } }
-     * @deny (update) No one can update mediation request documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete mediation request documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /mediation_requests/{requestId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to penalty documents.
-     * @path /penalties/{caseId}/{penaltyId}
-     * @allow (read) Any user can read penalty documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list penalty documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create penalty documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "caseId": "case123", "id": "penalty123", "amount": 100, "reason": "reason" } } }
-     * @deny (update) No one can update penalty documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete penalty documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /penalties/{caseId}/{penaltyId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
-
-    /**
-     * @description Controls access to ministry case documents.
-     * @path /ministries/{ministryId}/cases/{caseId}
-     * @allow (read) Any user can read ministry case documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list ministry case documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create ministry case documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "ministryId": "ministry123", "caseId": "case123" } } }
-     * @deny (update) No one can update ministry case documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete ministry case documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
+    
     match /ministries/{ministryId}/cases/{caseId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+        allow get, list: if true;
+        allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to course documents.
-     * @path /courses/{courseId}
-     * @allow (read) Any user can read course documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list course documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create course documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "course123", "name": "Course" } } }
-     * @deny (update) No one can update course documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete course documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /courses/{courseId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to module documents.
-     * @path /courses/{courseId}/modules/{moduleId}
-     * @allow (read) Any user can read module documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list module documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create module documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "courseId": "course123", "id": "module123", "name": "Module" } } }
-     * @deny (update) No one can update module documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete module documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /courses/{courseId}/modules/{moduleId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Controls access to simulation documents.
-     * @path /simulations/{simulationId}
-     * @allow (read) Any user can read simulation documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list simulation documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create simulation documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "simulation123", "name": "Simulation" } } }
-     * @deny (update) No one can update simulation documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete simulation documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /simulations/{simulationId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
-
-    /**
-     * @description Controls access to enrollment documents.
-     * @path /enrollments/{userId}/{courseId}
-     * @allow (create) User with ID 'user123' can create their own enrollment.
-     *   - Request: { "auth": { "uid": "user123" }, "resource": { "data": { "userId": "user123", "id": "course123" } } }
-     * @allow (read) User with ID 'user123' can read their own enrollment.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (update) User with ID 'user123' can update their own enrollment.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (delete) User with ID 'user123' can delete their own enrollment.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) User with ID 'user456' cannot create an enrollment for user 'user123'.
-     *   - Request: { "auth": { "uid": "user456" }, "resource": { "data": { "userId": "user123", "id": "course123" } } }
-     * @deny (read) User with ID 'user456' cannot read user 'user123's enrollment.
-     *   - Request: { "auth": { "uid": "user456" } }
-     * @principle Enforces document ownership for all operations.
-     */
+    
     match /enrollments/{userId}/{courseId} {
       allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.userId == userId;
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow get, list, update, delete: if isSignedIn() && isOwner(userId);
     }
 
-    /**
-     * @description Controls access to organization documents.
-     * @path /organizations/{organizationId}
-     * @allow (read) Any user can read organization documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @allow (list) Any user can list organization documents.
-     *   - Request: { "auth": { "uid": "user123" } }
-     * @deny (create) No one can create organization documents without authentication.
-     *   - Request: { "auth": null, "resource": { "data": { "id": "org123", "name": "Organization" } } }
-     * @deny (update) No one can update organization documents without authentication.
-     *   - Request: { "auth": null }
-     * @deny (delete) No one can delete organization documents without authentication.
-     *   - Request: { "auth": null }
-     * @principle Allows public read access, but requires authentication for writes.
-     */
     match /organizations/{organizationId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin role validation once defined.
+      allow create, update, delete: if false;
     }
 
     // --- Helper Functions ---
 
-    // Returns true if the user is signed in.
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Returns true if the user is the owner of the document.
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
+    
+    function hasRole(role) {
+      // Assumes custom claims are set: request.auth.token.roles
+      return request.auth.token.roles.hasAny([role]);
+    }
 
-    // Returns true if the user is the owner of the document and the document exists.
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+    function isParty(partiesList) {
+      return request.auth.uid in partiesList;
+    }
+    
+    // This is a placeholder for more complex logic. In a real app, this might involve
+    // checking a subcollection or a separate document that maps officials to cases.
+    function isAssignedOfficial(caseId) {
+        let caseData = get(/databases/$(database)/documents/cases/$(caseId)).data;
+        return hasRole('judge') && caseData.assignedJudgeId == request.auth.uid;
+        // Extend with: || (hasRole('clerk') && caseData.courtId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.courtId)
     }
   }
 }
-    

@@ -1,3 +1,4 @@
+
 import type { Case, Hearing, User, Course } from './types';
 import { placeholderImages } from './placeholder-images.json';
 
@@ -7,6 +8,8 @@ export const users: User[] = [
   { uid: 'user-litigant-1', name: 'Rajesh Kumar', email: 'rajesh.k@email.com', roles: ['litigant'], avatarUrl: placeholderImages[2].imageUrl },
   { uid: 'user-clerk-1', name: 'Anjali Desai', email: 'a.desai@courts.gov', roles: ['clerk'], avatarUrl: placeholderImages[3].imageUrl },
   { uid: 'user-admin-1', name: 'Admin User', email: 'admin@courts.gov', roles: ['admin'], avatarUrl: placeholderImages[4].imageUrl },
+  { uid: 'user-mediator-1', name: 'Samuel Green', email: 'sam.green@mediation.org', roles: ['mediator'], avatarUrl: 'https://picsum.photos/seed/user-mediator-1/400/400' },
+  { uid: 'litigant_1', name: 'Asha Sharma', email: 'asha@example.com', roles: ['litigant'], avatarUrl: placeholderImages[2].imageUrl, registeredAt: '2025-10-01T10:00:00Z' },
 ];
 
 export const cases: Case[] = [
@@ -92,6 +95,21 @@ export const cases: Case[] = [
     filings: [],
     createdAt: '2024-03-01T12:00:00Z',
     updatedAt: '2024-04-15T10:00:00Z',
+  },
+  {
+    caseId: 'CASE-L1',
+    title: 'Rent Dispute',
+    filerId: 'litigant_1',
+    parties: ['litigant_1'],
+    respondents: ['Landlord ABC'],
+    assignedJudgeId: 'user-judge-1',
+    courtId: 'court-1',
+    status: 'filed',
+    tags: ['Tenancy', 'Rent'],
+    complexity: 'low',
+    filings: [],
+    createdAt: '2025-10-01T10:05:00Z',
+    updatedAt: '2025-10-01T10:05:00Z',
   },
 ];
 
