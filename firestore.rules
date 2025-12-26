@@ -1,0 +1,180 @@
+
+/**
+ * @fileoverview Firestore Security Rules for the e-Judiciary platform.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for personal data (e.g., under /users/{userId}) and a public-read, owner-write model for top-level collections such as cases.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores personal user data. Access is restricted to the owning user.
+ * - /courts/{courtId}: Stores court data. Publicly readable.
+ * - /cases/{caseId}: Stores case data. Read access is controlled based on user roles and case participation.
+ * - /hearings/{hearingId}: Stores hearing data. Publicly readable.
+ * - /case_tags/{caseId}: Stores case tags. Publicly readable.
+ * - /case_summaries/{caseId}: Stores case summaries. Publicly readable.
+ * - /transcripts/{hearingId}/{transcriptId}: Stores transcripts. Publicly readable.
+ * - /mediators/{mediatorId}: Stores mediator data. Publicly readable.
+ * - /mediation_requests/{requestId}: Stores mediation requests. Publicly readable.
+ * - /penalties/{caseId}/{penaltyId}: Stores penalties. Publicly readable.
+ * - /ministries/{ministryId}/cases/{caseId}: Stores ministry cases. Publicly readable.
+ * - /courses/{courseId}: Stores course data. Publicly readable.
+ * - /courses/{courseId}/modules/{moduleId}: Stores modules within courses. Publicly readable.
+ * - /simulations/{simulationId}: Stores simulation data. Publicly readable.
+ * - /enrollments/{userId}/{courseId}: Stores user enrollments. Access is restricted to the owning user.
+ * - /organizations/{organizationId}: Stores organization data. Publicly readable.
+ *
+ * Key Security Decisions:
+ * - User data is strictly controlled by the owning user or admins.
+ * - Case data is readable by involved parties, assigned officials, or admins.
+ * - Public collections remain readable to facilitate discovery.
+ * - Data validation is relaxed for prototyping but MUST be tightened in production.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to user documents. Only the owner or an admin can read/write.
+     */
+    match /users/{userId} {
+      allow read, update, delete: if isSignedIn() && (isOwner(userId) || hasRole('admin'));
+      allow create: if isSignedIn();
+    }
+
+    /**
+     * @description Controls access to court documents. Publicly readable.
+     */
+    match /courts/{courtId} {
+      allow get, list: if true;
+      allow create, update, delete: if hasRole('admin');
+    }
+
+    /**
+     * @description Controls access to case documents.
+     * Read access is granted to case parties, assigned officials, or admins.
+     */
+    match /cases/{caseId} {
+      allow get: if isSignedIn() && (isParty(resource.data.parties) || hasRole('admin') || isAssignedOfficial(caseId) || hasRole('clerk'));
+      allow list: if isSignedIn(); // More complex list queries should be handled by backend logic/functions.
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
+
+      /**
+       * @description Controls access to case filings subcollection.
+       * Only the original filer can create (upload) new documents.
+       */
+      match /filings/{filingId} {
+        allow create: if isSignedIn() && isOwner(get(/databases/$(database)/documents/cases/$(caseId)).data.filerId);
+        allow read, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
+      }
+    }
+
+    /**
+     * @description Publicly readable collections for general app functionality.
+     */
+    match /hearings/{hearingId} {
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
+    }
+
+    match /case_tags/{caseId} {
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
+    }
+
+    match /case_summaries/{caseId} {
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
+    }
+
+    match /transcripts/{hearingId}/{transcriptId} {
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn() && (hasRole('admin') || hasRole('clerk'));
+    }
+
+    /**
+     * @description Mediator profiles are publicly readable, but only the mediator can edit their own profile.
+     */
+    match /mediators/{mediatorId} {
+      allow get, list: if true;
+      // The mediatorId must match the authenticated user's UID to allow updates.
+      allow update: if isSignedIn() && isOwner(mediatorId);
+      allow create, delete: if hasRole('admin'); // Only admins can create or delete mediator profiles.
+    }
+
+    /**
+     * @description Mediation requests can be read by anyone.
+     * Only an assigned mediator or an admin can update the request.
+     */
+    match /mediation_requests/{requestId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      // Assumes the request document has a `mediatorId` field.
+      allow update: if isSignedIn() && (isOwner(resource.data.mediatorId) || hasRole('admin') || hasRole('clerk'));
+      allow delete: if hasRole('admin');
+    }
+
+    match /penalties/{caseId}/{penaltyId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+// TODO: Add clerk/admin role validation for writes.
+    }
+    
+    match /ministries/{ministryId}/cases/{caseId} {
+        allow get, list: if true;
+        allow create, update, delete: if false;
+    }
+
+    match /courses/{courseId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    match /courses/{courseId}/modules/{moduleId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    match /simulations/{simulationId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+    
+    match /enrollments/{userId}/{courseId} {
+      allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.userId == userId;
+      allow get, list, update, delete: if isSignedIn() && isOwner(userId);
+    }
+
+    match /organizations/{organizationId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function hasRole(role) {
+      // Assumes user document has a 'roles' array.
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny([role]);
+    }
+
+    function isParty(partiesList) {
+      return request.auth.uid in partiesList;
+    }
+    
+    // This is a placeholder for more complex logic. In a real app, this might involve
+    // checking a subcollection or a separate document that maps officials to cases.
+    function isAssignedOfficial(caseId) {
+        let caseData = get(/databases/$(database)/documents/cases/$(caseId)).data;
+        return hasRole('judge') && caseData.assignedJudgeId == request.auth.uid;
+        // Extend with: || (hasRole('clerk') && caseData.courtId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.courtId)
+    }
+  }
+}
